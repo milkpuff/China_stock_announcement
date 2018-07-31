@@ -68,6 +68,7 @@ def main(annc_type, start_date=datetime.datetime.today().strftime("%Y%m%d"), end
     # 每日循环下载,并分月建立日志(便于一次性下载很长一段时间的公告)
     log_record = []
     for datei in date_range:
+        print(datei)
         #######################################日志处理############################
         if str(datei)[0:7].replace('-', '') in log_record:
             pass
@@ -165,23 +166,23 @@ def parse(columntype, daterange_i, downloadpath):
         "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6"
     }
     
-    sse_data = 'stock=&searchkey=&plate=&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
-        str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=&seDate=' + str(daterange_i)
-
-    jgjg_sz_data = 'stock=&searchkey=' + '&plate=jgjg_sz%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
-        str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_sz%2Fplate%2F%E6%B7%B1%E4%BA%A4%E6%89%80%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
-    jgjg_sh_data = 'stock=&searchkey=' + '&plate=jgjg_sh%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
-        str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_sh%2Fplate%2F%E4%B8%8A%E4%BA%A4%E6%89%80%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
-    jgjg_jsgs_data = 'stock=&searchkey=' + '&plate=jgjg_jsgs%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
-        str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_jsgs%2Fplate%2F%E7%BB%93%E7%AE%97%E5%85%AC%E5%8F%B8%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
-    jgjg_zjh_data = 'stock=&searchkey=' + '&plate=jgjg_zjh%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
-        str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_zjh%2Fplate%2F%E8%AF%81%E7%9B%91%E4%BC%9A%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
-    
 
     while flag == True:
         
         # request data
         datas = []
+        sse_data = 'stock=&searchkey=&plate=&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
+            str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=&seDate=' + str(daterange_i)
+
+        jgjg_sz_data = 'stock=&searchkey=' + '&plate=jgjg_sz%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
+            str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_sz%2Fplate%2F%E6%B7%B1%E4%BA%A4%E6%89%80%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
+        jgjg_sh_data = 'stock=&searchkey=' + '&plate=jgjg_sh%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
+            str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_sh%2Fplate%2F%E4%B8%8A%E4%BA%A4%E6%89%80%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
+        jgjg_jsgs_data = 'stock=&searchkey=' + '&plate=jgjg_jsgs%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
+            str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_jsgs%2Fplate%2F%E7%BB%93%E7%AE%97%E5%85%AC%E5%8F%B8%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
+        jgjg_zjh_data = 'stock=&searchkey=' + '&plate=jgjg_zjh%3B' + '&category=&trade=&column=' + columntype + '&columnTitle=%E5%8E%86%E5%8F%B2%E5%85%AC%E5%91%8A%E6%9F%A5%E8%AF%A2&pageNum=' + \
+            str(page_num) + '&pageSize=30&tabName=fulltext&sortName=&sortType=&limit=&showTitle=jgjg_zjh%2Fplate%2F%E8%AF%81%E7%9B%91%E4%BC%9A%E5%85%AC%E5%91%8A&seDate=' + str(daterange_i)
+        
         if columntype == 'regulator':
             datas.append(jgjg_sz_data)
             datas.append(jgjg_sh_data)
@@ -201,12 +202,15 @@ def parse(columntype, daterange_i, downloadpath):
                 flag = False
             else:
                 flag = j['hasMore']
+                print(flag)
                 # 记录日志
                 logger.info('日 期:' + str(daterange_i) + '     PageNUmber = ' + str(page_num) +
                             '   hasMore = ' + str(flag))
                 # 把每一页的项目append 到now里
                 for item_num in range(0, len(j['announcements'])):
+                    # if 
                     ii = j['announcements'][item_num]
+                    # print(ii)
                     valid = 0  # 下载成功后变为1
                     # 得到 title url 和 file_type
                     title = ii['announcementTitle'].replace(',', '').replace(
@@ -214,7 +218,7 @@ def parse(columntype, daterange_i, downloadpath):
                     url = 'http://www.cninfo.com.cn/' + \
                         ii['adjunctUrl'].strip()
                     # 防止重复
-                    if (url in d) == False:
+                    if not url in d:
                         d[url] = 'Yes'
                         ########################确定公告文件的类型file_type#############
                         if url.find('.html') > -1:
@@ -291,10 +295,10 @@ def parse(columntype, daterange_i, downloadpath):
                                         '-', '') + str(d[regu_type])
                             now.append([anncid, symbol, regu_type, title, antime[
                                 0:10], antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-
+            
                 page_num += 1
             response.close()
-
+        # break
     # 如果没有数据则不进行后续工作
     if len(now) != 0:
         # 把已存文件的内容读出来，作为old [],若当日无csv则创建，old置空
@@ -302,7 +306,7 @@ def parse(columntype, daterange_i, downloadpath):
         temp = []
         if os.path.exists(listpath + str(daterange_i) + '.csv'):
             f_old = open(listpath + str(daterange_i) + '.csv', 'rb+')
-            f_r = unicodecsv.reader(f_old, encoding='utf-8')
+            f_r = unicodecsv.reader(f_old, encoding='ANSI')
             for row in f_r:
                 old.append(row)
             f_old.close()
@@ -312,7 +316,7 @@ def parse(columntype, daterange_i, downloadpath):
                 for j in old:
                     if i[7].strip() == j[7].strip():
                         has = True
-                if has == False:
+            if not url in d:
                     temp.append(i)
         else:
             temp = now
@@ -504,4 +508,5 @@ if __name__ == "__main__":
         main(annc_type=sys.argv[1])
     else:
         print('参数输入不正确')
-        main(annc_type='sse', start_date='20180728', end_date='20180728')
+
+    main(annc_type='sse', start_date='20180731', end_date='20180731')
