@@ -15,6 +15,10 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 
+import numpy as np
+import pandas as pd
+
+
 ################### 读取配置文件 ###########################
 import configparser
 # 生成config对象
@@ -166,6 +170,8 @@ def parse(columntype, daterange_i, downloadpath):
         "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6"
     }
     
+    stock_list = pd.read_csv('./stock_list.csv',index_col=0,encoding='ANSI')
+    stock_code = list(map(lambda x:x.lower(),stock_list.index))
 
     while flag == True:
         
@@ -202,103 +208,101 @@ def parse(columntype, daterange_i, downloadpath):
                 flag = False
             else:
                 flag = j['hasMore']
-                print(flag)
                 # 记录日志
                 logger.info('日 期:' + str(daterange_i) + '     PageNUmber = ' + str(page_num) +
                             '   hasMore = ' + str(flag))
                 # 把每一页的项目append 到now里
                 for item_num in range(0, len(j['announcements'])):
-                    # if 
                     ii = j['announcements'][item_num]
-                    # print(ii)
-                    valid = 0  # 下载成功后变为1
-                    # 得到 title url 和 file_type
-                    title = ii['announcementTitle'].replace(',', '').replace(
-                        '<font color=red>', '').replace('</font>', '').replace('\n', '')
-                    url = 'http://www.cninfo.com.cn/' + \
-                        ii['adjunctUrl'].strip()
-                    # 防止重复
-                    if not url in d:
-                        d[url] = 'Yes'
-                        ########################确定公告文件的类型file_type#############
-                        if url.find('.html') > -1:
-                            file_type = 'TXT'
-                        elif url.find('.js') > -1:
-                            file_type = 'TXT'
-                        elif url.find('.pdf') > -1 or url.find('.PDF') > -1:
-                            file_type = 'PDF'
-                        elif url.find('.doc') > -1 or url.find('.DOC') > -1:
-                            if url.find('.docx') > -1 or url.find('.DOCX') > -1:
-                                file_type = 'DOCX'
+                    if (ii['secCode'] + '.sh' if ii['secCode'][0]=='6' else ii['secCode'] + '.sz') in stock_code:
+                        valid = 0  # 下载成功后变为1
+                        # 得到 title url 和 file_type
+                        title = ii['announcementTitle'].replace(',', '').replace(
+                            '<font color=red>', '').replace('</font>', '').replace('\n', '')
+                        url = 'http://www.cninfo.com.cn/' + \
+                            ii['adjunctUrl'].strip()
+                        # 防止重复
+                        if not url in d:
+                            d[url] = 'Yes'
+                            ########################确定公告文件的类型file_type#############
+                            if url.find('.html') > -1:
+                                file_type = 'TXT'
+                            elif url.find('.js') > -1:
+                                file_type = 'TXT'
+                            elif url.find('.pdf') > -1 or url.find('.PDF') > -1:
+                                file_type = 'PDF'
+                            elif url.find('.doc') > -1 or url.find('.DOC') > -1:
+                                if url.find('.docx') > -1 or url.find('.DOCX') > -1:
+                                    file_type = 'DOCX'
+                                else:
+                                    file_type = 'DOC'
                             else:
-                                file_type = 'DOC'
-                        else:
-                            file_type = 'UNKNOEN'
-                        #######################################################
-                        # 把时间戳转为yyyy-mm-dd hh:mm:ss的形式，若没有，则按00:00:00算
-                        try:
-                            antime = time.strftime(
-                                '%Y-%m-%d %H:%M:%S', time.localtime(ii['announcementTime'] / 1000))
-                        except ValueError as e:
-                            antime = daterange_i + ' 00:00:00'
-                        else:
-                            pass
-                        if columntype == 'sse':
-                            abbv = ii['secName']
-                            symbol = ii['secCode']
-                            # 生成anncid
-                            if len(symbol) == 6:
-                                if symbol in d:
-                                    d[symbol] = int(d[symbol]) + 1
-                                else:
-                                    d[symbol] = 1
-                            # 1位数字添00,2位数字添0
-                                if d[symbol] < 10:
-                                    anncid = symbol + \
-                                        str(daterange_i).replace(
-                                            '-', '') + '00' + str(d[symbol])
-                                elif d[symbol] < 100:
-                                    anncid = symbol + \
-                                        str(daterange_i).replace(
-                                            '-', '') + '0' + str(d[symbol])
-                                else:
-                                    anncid = symbol + \
-                                        str(daterange_i).replace(
-                                            '-', '') + str(d[symbol])
-                                anncid = str(anncid)
+                                file_type = 'UNKNOEN'
+                            #######################################################
+                            # 把时间戳转为yyyy-mm-dd hh:mm:ss的形式，若没有，则按00:00:00算
+                            try:
+                                antime = time.strftime(
+                                    '%Y-%m-%d %H:%M:%S', time.localtime(ii['announcementTime'] / 1000))
+                            except ValueError as e:
+                                antime = daterange_i + ' 00:00:00'
+                            else:
+                                pass
+                            if columntype == 'sse':
+                                abbv = ii['secName']
+                                symbol = ii['secCode']
+                                # 生成anncid
+                                if len(symbol) == 6:
+                                    if symbol in d:
+                                        d[symbol] = int(d[symbol]) + 1
+                                    else:
+                                        d[symbol] = 1
+                                # 1位数字添00,2位数字添0
+                                    if d[symbol] < 10:
+                                        anncid = symbol + \
+                                            str(daterange_i).replace(
+                                                '-', '') + '00' + str(d[symbol])
+                                    elif d[symbol] < 100:
+                                        anncid = symbol + \
+                                            str(daterange_i).replace(
+                                                '-', '') + '0' + str(d[symbol])
+                                    else:
+                                        anncid = symbol + \
+                                            str(daterange_i).replace(
+                                                '-', '') + str(d[symbol])
+                                    anncid = str(anncid)
 
-                                now.append([anncid, symbol, abbv, title, antime[
-                                           0:10], antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-                        elif columntype == 'regulator':
-                            symbol = ii['secCode'].replace(',', ';')
-                            # 根据查询参数来确定公告类型
-                            if data.find('jgjg_sz') > -1:
-                                regu_type = 'SZSE'
-                            elif data.find('jgjg_sh') > -1:
-                                regu_type = 'SSE'
-                            elif data.find('plate=jgjg_jsgs') > -1:
-                                regu_type = 'CSDC'
-                            elif data.find('jgjg_zjh') > -1:
-                                regu_type = 'CSRC'
-                            if regu_type in d:
-                                d[regu_type] = int(d[regu_type]) + 1
-                            else:
-                                d[regu_type] = 1
-                            # 个位数字添0
-                            if d[regu_type] < 10:
-                                anncid = regu_type + \
-                                    str(daterange_i).replace(
-                                        '-', '') + '0' + str(d[regu_type])
-                            else:
-                                anncid = regu_type + \
-                                    str(daterange_i).replace(
-                                        '-', '') + str(d[regu_type])
-                            now.append([anncid, symbol, regu_type, title, antime[
-                                0:10], antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-            
+                                    now.append([anncid, symbol, abbv, title, antime[
+                                               0:10], antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                            elif columntype == 'regulator':
+                                symbol = ii['secCode'].replace(',', ';')
+                                # 根据查询参数来确定公告类型
+                                if data.find('jgjg_sz') > -1:
+                                    regu_type = 'SZSE'
+                                elif data.find('jgjg_sh') > -1:
+                                    regu_type = 'SSE'
+                                elif data.find('plate=jgjg_jsgs') > -1:
+                                    regu_type = 'CSDC'
+                                elif data.find('jgjg_zjh') > -1:
+                                    regu_type = 'CSRC'
+                                if regu_type in d:
+                                    d[regu_type] = int(d[regu_type]) + 1
+                                else:
+                                    d[regu_type] = 1
+                                # 个位数字添0
+                                if d[regu_type] < 10:
+                                    anncid = regu_type + \
+                                        str(daterange_i).replace(
+                                            '-', '') + '0' + str(d[regu_type])
+                                else:
+                                    anncid = regu_type + \
+                                        str(daterange_i).replace(
+                                            '-', '') + str(d[regu_type])
+                                now.append([anncid, symbol, regu_type, title, antime[
+                                    0:10], antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                
                 page_num += 1
             response.close()
-        # break
+
     # 如果没有数据则不进行后续工作
     if len(now) != 0:
         # 把已存文件的内容读出来，作为old [],若当日无csv则创建，old置空
@@ -316,6 +320,7 @@ def parse(columntype, daterange_i, downloadpath):
                 for j in old:
                     if i[7].strip() == j[7].strip():
                         has = True
+                        break
             if not url in d:
                     temp.append(i)
         else:
@@ -345,7 +350,7 @@ def parse(columntype, daterange_i, downloadpath):
                         '公告新类型未下载： id号 URL网址: %s %s' % (anncid, url))
                 temp_update.append(row)
             logger.info('本次成功下载了' + str(len(temp_update)) + '份公告')
-
+            print(temp_update)
             # 把之前未存的temp 里的数据 更新到月csv 和 日csv, 日csv里的内容作为下次的 old[]
             # csv写入编码使用'ANSI'，否则容易乱码
 
