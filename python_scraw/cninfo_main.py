@@ -53,7 +53,7 @@ if os.path.exists(logpath) == False:
 # 把日期按日拆分后，每日都调用parse函数，解析页面，然后根据公告文件类型不同，调用不同的下载函数
 
 
-def main(annc_type, start_date=datetime.datetime.today().strftime("%Y%m%d"), end_date=datetime.datetime.today().strftime("%Y%m%d"), savepath=filepath):
+def main(annc_type, start_date=datetime.datetime.today().strftime("%Y%m%d"), end_date=datetime.datetime.today().strftime("%Y%m%d"), stock_code=None, savepath=filepath):
     if savepath[-1] != '/':
         savepath += savepath + '/'
     currentMinute = int(time.strftime('%M', time.localtime(time.time())))
@@ -133,11 +133,11 @@ def main(annc_type, start_date=datetime.datetime.today().strftime("%Y%m%d"), end
                 logger.addHandler(handler)          # 为logger添加handler
                 logger.setLevel(logging.INFO)
         # 按日下载
-        parse(annc_type, datei, savepath)
+        parse(annc_type, datei, savepath, stock_code)
 
 
 ####################################################下载公告列表，解析并下载公告########
-def parse(columntype, daterange_i, downloadpath):
+def parse(columntype, daterange_i, downloadpath, stock_code=None,):
     # 检查路径，若没有即创建
     if columntype == 'sse':
         contentpath = downloadpath + 'sse/content/' + \
@@ -177,8 +177,11 @@ def parse(columntype, daterange_i, downloadpath):
         "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6"
     }
 
-    stock_list = pd.read_csv('./stock_list.csv', index_col=0, encoding='ANSI')
-    stock_code = list(map(lambda x: x.lower(), stock_list.index))
+    # stock_code
+    if stock_code == None:
+        stock_list = pd.read_csv(
+            './stock_list.csv', index_col=0, encoding='ANSI')
+        stock_code = list(map(lambda x: x.lower(), stock_list.index))
 
     while flag == True:
 
@@ -277,9 +280,7 @@ def parse(columntype, daterange_i, downloadpath):
                                             str(daterange_i).replace(
                                                 '-', '') + str(d[symbol])
                                     anncid = str(anncid)
-
-                                    now.append([anncid, symbol, abbv, title, antime[
-                                               0:10], antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                                    now.append([anncid, symbol, abbv, title, antime, antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
                             elif columntype == 'regulator':
                                 symbol = ii['secCode'].replace(',', ';')
                                 # 根据查询参数来确定公告类型
@@ -304,8 +305,7 @@ def parse(columntype, daterange_i, downloadpath):
                                     anncid = regu_type + \
                                         str(daterange_i).replace(
                                             '-', '') + str(d[regu_type])
-                                now.append([anncid, symbol, regu_type, title, antime[
-                                    0:10], antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                                now.append([anncid, symbol, regu_type, title, antime, antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
 
                 page_num += 1
             response.close()
@@ -323,16 +323,13 @@ def parse(columntype, daterange_i, downloadpath):
             f_old.close()
             # 把now中与old重复的去掉,计入temp
             for i in now:
-                has = False
                 for j in old:
                     if i[7].strip() == j[7].strip():
-                        has = True
+                        temp.append(i)
                         break
-            if not url in d:
-                temp.append(i)
         else:
             temp = now
-
+        print(temp)
         #########################################download部分####################
         # 如果有新的，就更新到csv和数据库里
         if len(temp) != 0:
@@ -521,4 +518,4 @@ if __name__ == "__main__":
     else:
         print('参数输入不正确')
 
-    main(annc_type='sse', start_date='20180731', end_date='20180731')
+    main(annc_type='sse', start_date='20180801', end_date='20180801')
