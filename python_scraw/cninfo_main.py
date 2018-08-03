@@ -7,7 +7,6 @@
 
 '''
 
-
 import sys
 import os
 import unicodecsv
@@ -144,12 +143,11 @@ def parse(columntype, daterange_i, downloadpath, stock_code=None,):
             str(daterange_i)[0:4] + '/' + str(daterange_i)[5:7] + '/'
         listpath = downloadpath + 'sse/list/' + \
             str(daterange_i)[0:4] + '/'
-    if columntype == 'regulator':
+    elif columntype == 'regulator':
         contentpath = downloadpath + 'reg/content/' + \
             str(daterange_i)[0:4] + '/' + str(daterange_i)[5:7] + '/'
         listpath = downloadpath + 'reg/list/' + \
             str(daterange_i)[0:4] + '/'
-        columntype = 'regulator'
     if os.path.exists(contentpath) == False:
         os.makedirs(contentpath)
     if os.path.exists(listpath) == False:
@@ -280,7 +278,8 @@ def parse(columntype, daterange_i, downloadpath, stock_code=None,):
                                             str(daterange_i).replace(
                                                 '-', '') + str(d[symbol])
                                     anncid = str(anncid)
-                                    now.append([anncid, symbol, abbv, title, antime, antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                                    now.append([anncid, symbol, abbv, title, antime, antime[-8:], file_type,
+                                                url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
                             elif columntype == 'regulator':
                                 symbol = ii['secCode'].replace(',', ';')
                                 # 根据查询参数来确定公告类型
@@ -305,7 +304,8 @@ def parse(columntype, daterange_i, downloadpath, stock_code=None,):
                                     anncid = regu_type + \
                                         str(daterange_i).replace(
                                             '-', '') + str(d[regu_type])
-                                now.append([anncid, symbol, regu_type, title, antime, antime[-8:], file_type, url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                                now.append([anncid, symbol, regu_type, title, antime, antime[-8:], file_type,
+                                            url, valid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
 
                 page_num += 1
             response.close()
@@ -323,38 +323,18 @@ def parse(columntype, daterange_i, downloadpath, stock_code=None,):
             f_old.close()
             # 把now中与old重复的去掉,计入temp
             for i in now:
+                has = False
                 for j in old:
                     if i[7].strip() == j[7].strip():
-                        temp.append(i)
+                        has = True
                         break
+                if not has:
+                    temp.append(i)
         else:
             temp = now
-        print(temp)
         #########################################download部分####################
         # 如果有新的，就更新到csv和数据库里
         if len(temp) != 0:
-            # 把temp中url指向的公告下载到contentpath下,并更新temp到temp_update
-            temp_update = []
-            # temp里的公告都尝试下载，并根据是否成功下载，更新为temp_updata
-            for row in temp:
-                url = row[7]
-                anncid = row[0]
-                # 解析url类型并下载url链接下的公告
-                # 根据是否成功下载 更新valid字段的值
-                if (url.find('.pdf') > -1 or url.find('.PDF') > -1) and downpdf(contentpath, anncid, url):
-                    row[8] = 1
-                elif url.find('.html') > -1 and downhtml(contentpath, anncid, url):
-                    row[8] = 1
-                elif url.find('.js') > -1 and downjs(contentpath, anncid, url):
-                    row[8] = 1
-                elif (url.find('.doc') > -1 or url.find('.DOC') > -1) and downdoc(contentpath, anncid, url):
-                    row[8] = 1
-                else:
-                    logger_error.error(
-                        '公告新类型未下载： id号 URL网址: %s %s' % (anncid, url))
-                temp_update.append(row)
-            logger.info('本次成功下载了' + str(len(temp_update)) + '份公告')
-            print(temp_update)
             # 把之前未存的temp 里的数据 更新到月csv 和 日csv, 日csv里的内容作为下次的 old[]
             # csv写入编码使用'ANSI'，否则容易乱码
 
@@ -363,7 +343,7 @@ def parse(columntype, daterange_i, downloadpath, stock_code=None,):
                          [0:7].replace('-', '') + '.csv', 'ab+')
             f_w = unicodecsv.writer(
                 f_mon, encoding='ANSI')  # 直接使用csv则存储的都是二进制
-            for row in temp_update:
+            for row in temp:
                 f_w.writerow(row)
             f_mon.close()
 
@@ -371,7 +351,7 @@ def parse(columntype, daterange_i, downloadpath, stock_code=None,):
             f_day = open(listpath + str(daterange_i) + '.csv', 'ab+')
             f_w = unicodecsv.writer(
                 f_day, encoding='ANSI')  # 直接使用csv则存储的都是二进制
-            for row in temp_update:
+            for row in temp:
                 f_w.writerow(row)
             f_day.close()
 
@@ -379,7 +359,7 @@ def parse(columntype, daterange_i, downloadpath, stock_code=None,):
             f_tmp = open(listpath + str(daterange_i) + '_temp.csv', 'wb+')
             f_w = unicodecsv.writer(
                 f_tmp, encoding='ANSI')  # 直接使用csv则存储的都是二进制
-            for row in temp_update:
+            for row in temp:
                 f_w.writerow(row)
             f_tmp.close()
 
@@ -518,4 +498,4 @@ if __name__ == "__main__":
     else:
         print('参数输入不正确')
 
-    main(annc_type='sse', start_date='20180801', end_date='20180801')
+    main(annc_type='sse', start_date='20180802', end_date='20180802')
